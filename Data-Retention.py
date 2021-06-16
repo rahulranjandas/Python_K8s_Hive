@@ -56,7 +56,7 @@ def hive_connection():
                 sql=dropsql+'\''+x+'\')'
                 try:
                     cursor.execute(sql)
-                    print("Partition dropped -> "+x)
+                    print("Partitions dropped -> "+x)
                 except:
                     print("Partition does not exist -> ",x)
                 sql=''
@@ -64,6 +64,7 @@ def hive_connection():
             # trunc_date.clear()
             # print("printing truncate list",trunc_date)
             sql='msck repair table '+database[i]+'.'+table[i]
+            # print(trunc_date)
             trunc_date.clear()
             cursor.execute(sql)
             conn.close()
@@ -88,14 +89,15 @@ def extract_partitions(result,i):
     curdate=date.today()
     retentiond=datetime.strftime(curdate-timedelta(retention_duration[i]),formatdate)
     trunc_date.clear()
+    print(trunc_date)
     for dat in strdate:
-        if dat<retentiond:
+        if datetime.strptime(dat, formatdate)<datetime.strptime(retentiond, formatdate):
             trunc_date.append(dat)
 
 def parsing_date(text):
     for fmt in ('%d-%m-%Y', '%Y%m%d', '%d/%m/%Y','%d%m%Y'):
         try:
-            return datetime.strptime(text, fmt), fmt
+            return datetime.strptime(text, fmt).strftime(fmt), fmt
         except ValueError:
             pass
     raise ValueError('Invalid date format found -> '+text)
@@ -120,8 +122,7 @@ if __name__=="__main__":
    retention_duration=[]
    partition_col=[]
    trunc_date=[]
-
+   print("Run commenced at:"+datetime.now())
    postgres_connect()
-
-   print(database)
    hive_connection()
+   print("Run terminated at:"+datetime.now())
